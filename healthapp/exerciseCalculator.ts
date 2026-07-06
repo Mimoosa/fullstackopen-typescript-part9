@@ -1,16 +1,16 @@
-import { isNotNumber } from "./utils";
+import { isNotNumber } from "./utils.ts";
 
 interface ExerciseResult {
   periodLength: number;
   trainingDays: number;
-  success: Boolean;
+  success: boolean;
   rating: number;
   ratingDescription: string;
   target: number;
   average: number;
 }
 
-const calculateExercises = (
+export const calculateExercises = (
   exerciseHours: number[],
   target: number,
 ): ExerciseResult => {
@@ -26,7 +26,7 @@ const calculateExercises = (
     ratingDescription = "not too bad but could be better";
   } else {
     rating = 1;
-    ratingDescription = "you need to put in more effort";
+    ratingDescription = "bad";
   }
 
   const result = {

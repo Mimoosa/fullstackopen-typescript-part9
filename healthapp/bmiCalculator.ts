@@ -1,4 +1,4 @@
-import { isNotNumber } from "./utils";
+import { isNotNumber } from "./utils.ts";
 
 export const calculateBmi = (height: number, weight: number): string => {
   const result = weight / (height / 100) ** 2;
