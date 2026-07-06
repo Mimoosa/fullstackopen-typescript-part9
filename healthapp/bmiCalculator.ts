@@ -1,6 +1,6 @@
 import { isNotNumber } from "./utils";
 
-const calculateBmi = (height: number, weight: number): string => {
+export const calculateBmi = (height: number, weight: number): string => {
   const result = weight / (height / 100) ** 2;
   if (result < 18.5) {
     return "Underweight";
@@ -32,13 +32,15 @@ const parseArguments = (args: string[]): MultiplyValues => {
   }
 };
 
-try {
-  const { value1, value2 } = parseArguments(process.argv);
-  console.log(calculateBmi(value1, value2));
-} catch (error: unknown) {
-  let errorMessage = "Something bad happened.";
-  if (error instanceof Error) {
-    errorMessage += " Error: " + error.message;
+if (require.main === module) {
+  try {
+    const { value1, value2 } = parseArguments(process.argv);
+    console.log(calculateBmi(value1, value2));
+  } catch (error: unknown) {
+    let errorMessage = "Something bad happened.";
+    if (error instanceof Error) {
+      errorMessage += " Error: " + error.message;
+    }
+    console.log(errorMessage);
   }
-  console.log(errorMessage);
 }
