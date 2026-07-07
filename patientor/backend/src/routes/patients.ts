@@ -1,7 +1,11 @@
-import express, { type Response } from "express";
+import express, { type Request, type Response } from "express";
 import patientService from "../services/patientService.ts";
-import type { NonSensitivePatientEntry } from "../types.ts";
-import parseNewPatientEntry from "../utils.ts";
+import {
+  type NonSensitivePatientEntry,
+  type NewPatientEntry,
+  type Patient,
+} from "../types.ts";
+import { newPatientParser, errorMiddleware } from "../middleware.ts";
 
 const router = express.Router();
 
@@ -19,20 +23,16 @@ router.get("/:id", (req, res) => {
   return res.send(patient);
 });
 
-router.post("/", (req, res) => {
-  try {
+router.post(
+  "/",
+  newPatientParser,
+  (req: Request<unknown, unknown, NewPatientEntry>, res: Response<Patient>) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const newPatientEntry = parseNewPatientEntry(req.body as unknown);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const addedEntry = patientService.addPatient(newPatientEntry);
+    const addedEntry = patientService.addPatient(req.body);
     res.json(addedEntry);
-  } catch (error: unknown) {
-    let errorMessage = "Something went wrong.";
-    if (error instanceof Error) {
-      errorMessage += " Error: " + error.message;
-    }
-    res.status(400).send(errorMessage);
-  }
-});
+  },
+);
+
+router.use(errorMiddleware);
 
 export default router;
