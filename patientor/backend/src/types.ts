@@ -14,12 +14,15 @@ export type Diagnose = {
   latin?: string;
 };
 
+export const EntrySchema = z.object({});
+
 export const NewPatientSchema = z.object({
   name: z.string(),
   dateOfBirth: z.iso.date(),
   ssn: z.string(),
   gender: z.enum(Gender),
   occupation: z.string(),
+  entries: z.array(EntrySchema),
 });
 
 export type NewPatientEntry = z.infer<typeof NewPatientSchema>;
@@ -28,4 +31,4 @@ export interface Patient extends NewPatientEntry {
   id: string;
 }
 
-export type NonSensitivePatientEntry = Omit<Patient, "ssn">;
+export type NonSensitivePatientEntry = Omit<Patient, "ssn" | "entries">;

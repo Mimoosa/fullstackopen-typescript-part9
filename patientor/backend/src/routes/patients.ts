@@ -15,7 +15,6 @@ router.get("/", (_req, res: Response<NonSensitivePatientEntry[]>) => {
 });
 
 router.get("/:id", (req, res) => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const patient = patientService.findById(req.params.id);
   if (!patient) {
     return res.sendStatus(404);
@@ -27,7 +26,6 @@ router.post(
   "/",
   newPatientParser,
   (req: Request<unknown, unknown, NewPatientEntry>, res: Response<Patient>) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const addedEntry = patientService.addPatient(req.body);
     res.json(addedEntry);
   },

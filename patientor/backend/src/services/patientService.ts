@@ -23,10 +23,8 @@ const addPatient = (patient: NewPatientEntry): Patient => {
   return newPatientEntry;
 };
 
-const findById = (id: string): NonSensitivePatientEntry | undefined => {
-  const nonsensitivePatients = patients.map(({ ssn: _ssn, ...rest }) => rest);
-
-  return nonsensitivePatients.find((p) => p.id === id);
+const findById = (id: string): Patient | undefined => {
+  return patients.find((p) => p.id === id);
 };
 
 export default {
