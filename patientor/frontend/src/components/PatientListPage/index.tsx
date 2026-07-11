@@ -42,20 +42,47 @@ const PatientListPage = ({ patients, setPatients }: Props) => {
       setModalOpen(false);
     } catch (e: unknown) {
       if (axios.isAxiosError(e)) {
-        if (e?.response?.data && typeof e?.response?.data === "string") {
-          const message = e.response.data.replace(
-            "Something went wrong. Error: ",
-            "",
-          );
-          console.error(message);
-          setError(message);
-        } else {
-          setError("Unrecognized axios error");
+        const backendError = e.response?.data;
+
+        if (backendError?.error) {
+          const issues: unknown = backendError.error;
+
+          if (Array.isArray(issues)) {
+            const formatted = issues
+              .map((issue) => {
+                if (
+                  typeof issue === "object" &&
+                  issue !== null &&
+                  "path" in issue &&
+                  "message" in issue &&
+                  typeof (issue as { path: unknown }).path === "string" &&
+                  typeof (issue as { message: unknown }).message === "string"
+                ) {
+                  const i = issue as { path: string; message: string };
+                  return `${i.path}: ${i.message}`;
+                }
+                return "Invalid error format";
+              })
+              .join("\n");
+
+            setError(formatted);
+            return;
+          }
+
+          setError("Invalid Zod error format");
+          return;
         }
-      } else {
-        console.error("Unknown error", e);
-        setError("Unknown error");
+
+        if (typeof backendError === "string") {
+          setError(backendError);
+          return;
+        }
+        setError(e.message);
+        return;
       }
+
+      console.error("Unknown error", e);
+      setError("Unknown error");
     }
   };
 
