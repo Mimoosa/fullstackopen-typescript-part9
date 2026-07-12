@@ -1,13 +1,40 @@
-import { TextField, Grid, Button } from "@mui/material";
+import {
+  TextField,
+  InputLabel,
+  MenuItem,
+  Select,
+  Grid,
+  Button,
+  SelectChangeEvent,
+} from "@mui/material";
 import { useState, SyntheticEvent } from "react";
-import { HealthCheckFormValues, HealthCheckRating } from "../../types";
+import {
+  EntryFormValues,
+  HealthCheckRating,
+  SickLeave,
+  Discharge,
+} from "../../types";
 import { Alert } from "@mui/material";
+import { HealthCheckInput } from "./HealthCheckInput.tsx";
+import { OccupationalHealthcareInput } from "./OccupationalHealthcareInput.tsx";
+import { HospiatlInput } from "./HospitalInput.tsx";
 
 interface Props {
   onCancel: () => void;
-  onSubmit: (values: HealthCheckFormValues) => void;
+  onSubmit: (values: EntryFormValues) => void;
   error: string | undefined;
 }
+
+interface EntryOption {
+  value: string;
+  label: string;
+}
+
+const entryOptions: EntryOption[] = [
+  { label: "Health Check", value: "HealthCheck" },
+  { label: "Occupational Healthcare", value: "OccupationalHealthcare" },
+  { label: "Hospital", value: "Hospital" },
+];
 
 export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
   const [date, setDate] = useState("");
@@ -15,29 +42,102 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
   const [specialist, setSpecialist] = useState("");
   const [healthCheckRating, setHealthCheckRating] = useState("");
   const [diagnosisCodes, setDiagnosisCodes] = useState("");
+  const [type, setType] = useState("HealthCheck");
+  const [employerName, setEmployerName] = useState("");
+  const [sickLeave, setSickLeave] = useState<SickLeave>({
+    startDate: "",
+    endDate: "",
+  });
+  const [discharge, setDischarge] = useState<Discharge>({
+    date: "",
+    criteria: "",
+  });
 
   const addEntry = (event: SyntheticEvent) => {
     event.preventDefault();
-    onSubmit({
-      date,
-      description,
-      specialist,
-      healthCheckRating: Number(healthCheckRating) as HealthCheckRating,
-      diagnosisCodes: diagnosisCodes
-        .split(",")
-        .map((code) => code.trim())
-        .filter((code) => code.length > 0),
-      type: "HealthCheck",
-    });
+    switch (type) {
+      case "HealthCheck":
+        return onSubmit({
+          date,
+          description,
+          specialist,
+          healthCheckRating: Number(healthCheckRating) as HealthCheckRating,
+          diagnosisCodes: diagnosisCodes
+            .split(",")
+            .map((code) => code.trim())
+            .filter((code) => code.length > 0),
+          type: "HealthCheck",
+        });
+      case "OccupationalHealthcare":
+        if (sickLeave) {
+          return onSubmit({
+            date,
+            description,
+            specialist,
+            employerName: employerName,
+            sickLeave: sickLeave,
+            diagnosisCodes: diagnosisCodes
+              .split(",")
+              .map((code) => code.trim())
+              .filter((code) => code.length > 0),
+            type: "OccupationalHealthcare",
+          });
+        } else {
+          return onSubmit({
+            date,
+            description,
+            specialist,
+            employerName: employerName,
+            diagnosisCodes: diagnosisCodes
+              .split(",")
+              .map((code) => code.trim())
+              .filter((code) => code.length > 0),
+            type: "OccupationalHealthcare",
+          });
+        }
+      case "Hospital":
+        return onSubmit({
+          date,
+          description,
+          specialist,
+          discharge: discharge,
+          diagnosisCodes: diagnosisCodes
+            .split(",")
+            .map((code) => code.trim())
+            .filter((code) => code.length > 0),
+          type: "Hospital",
+        });
+    }
   };
 
   return (
     <div>
+      <h2>New Entry</h2>
       {error && <Alert severity="error">{error}</Alert>}
       <form onSubmit={addEntry}>
+        <InputLabel sx={{ marginTop: 2.5 }}>Entry type</InputLabel>
+        <Select
+          label="Entry type"
+          fullWidth
+          value={type}
+          onChange={(event: SelectChangeEvent<string>) => {
+            setType(event.target.value);
+          }}
+        >
+          {entryOptions.map((option) => (
+            <MenuItem key={option.label} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </Select>
         <TextField
-          label="Date"
-          placeholder="YYYY-MM-DD"
+          type="date"
+          label="entry date"
+          slotProps={{
+            inputLabel: {
+              shrink: true,
+            },
+          }}
           fullWidth
           value={date}
           onChange={({ target }) => setDate(target.value)}
@@ -56,13 +156,23 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
           value={specialist}
           onChange={({ target }) => setSpecialist(target.value)}
         />
-        <TextField
-          label="Healh Check Rating (0-3)"
-          placeholder="input a rate (0-3)"
-          fullWidth
-          value={healthCheckRating}
-          onChange={({ target }) => setHealthCheckRating(target.value)}
-        />
+        {type === "HealthCheck" && (
+          <HealthCheckInput
+            value={healthCheckRating}
+            setValue={setHealthCheckRating}
+          />
+        )}
+        {type === "OccupationalHealthcare" && (
+          <OccupationalHealthcareInput
+            employerName={employerName}
+            setEmployerName={setEmployerName}
+            sickLeave={sickLeave}
+            setSickLeave={setSickLeave}
+          />
+        )}
+        {type === "Hospital" && (
+          <HospiatlInput discharge={discharge} setDischarge={setDischarge} />
+        )}
         <TextField
           label="Diagnosis Code"
           placeholder="Diagnosis Code (comma-separated)"
