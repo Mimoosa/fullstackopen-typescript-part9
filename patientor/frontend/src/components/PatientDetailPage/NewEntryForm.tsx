@@ -6,6 +6,9 @@ import {
   Grid,
   Button,
   SelectChangeEvent,
+  Box,
+  OutlinedInput,
+  Chip,
 } from "@mui/material";
 import { useState, SyntheticEvent } from "react";
 import {
@@ -36,12 +39,59 @@ const entryOptions: EntryOption[] = [
   { label: "Hospital", value: "Hospital" },
 ];
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  slotProps: {
+    paper: {
+      style: {
+        maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        width: 250,
+      },
+    },
+  },
+};
+
+interface DiagnosisOption {
+  value: string;
+  label: string;
+}
+
+const diagnosisOptions: DiagnosisOption[] = [
+  { value: "M24.2", label: "Disorder of ligament" },
+  { value: "M51.2", label: "Other specified intervertebral disc displacement" },
+  {
+    value: "S03.5",
+    label:
+      "Sprain and strain of joints and ligaments of other and unspecified parts of head",
+  },
+  {
+    value: "J10.1",
+    label:
+      "Influenza with other respiratory manifestations, other influenza virus codeentified",
+  },
+  {
+    value: "J06.9",
+    label: "Acute upper respiratory infection, unspecified",
+  },
+  { value: "Z57.1", label: "Occupational exposure to radiation" },
+  { value: "N30.0", label: "Acute cystitis" },
+  { value: "H54.7", label: "Unspecified visual loss" },
+  { value: "J03.0", label: "Streptococcal tonsillitis" },
+  { value: "L60.1", label: "Onycholysis" },
+  { value: "Z74.3", label: "Need for continuous supervision" },
+  { value: "L20", label: "Atopic dermatitis" },
+  { value: "F43.2", label: "Adjustment disorders" },
+  { value: "S62.5", label: "Fracture of thumb" },
+  { value: "H35.29", label: "Other proliferative retinopathy" },
+];
+
 export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
   const [date, setDate] = useState("");
   const [description, setDiscription] = useState("");
   const [specialist, setSpecialist] = useState("");
-  const [healthCheckRating, setHealthCheckRating] = useState("");
-  const [diagnosisCodes, setDiagnosisCodes] = useState("");
+  const [healthCheckRating, setHealthCheckRating] = useState("0");
+  const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
   const [type, setType] = useState("HealthCheck");
   const [employerName, setEmployerName] = useState("");
   const [sickLeave, setSickLeave] = useState<SickLeave>({
@@ -62,10 +112,7 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
           description,
           specialist,
           healthCheckRating: Number(healthCheckRating) as HealthCheckRating,
-          diagnosisCodes: diagnosisCodes
-            .split(",")
-            .map((code) => code.trim())
-            .filter((code) => code.length > 0),
+          diagnosisCodes: diagnosisCodes,
           type: "HealthCheck",
         });
       case "OccupationalHealthcare":
@@ -76,10 +123,7 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
             specialist,
             employerName: employerName,
             sickLeave: sickLeave,
-            diagnosisCodes: diagnosisCodes
-              .split(",")
-              .map((code) => code.trim())
-              .filter((code) => code.length > 0),
+            diagnosisCodes: diagnosisCodes,
             type: "OccupationalHealthcare",
           });
         } else {
@@ -88,10 +132,7 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
             description,
             specialist,
             employerName: employerName,
-            diagnosisCodes: diagnosisCodes
-              .split(",")
-              .map((code) => code.trim())
-              .filter((code) => code.length > 0),
+            diagnosisCodes: diagnosisCodes,
             type: "OccupationalHealthcare",
           });
         }
@@ -101,13 +142,20 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
           description,
           specialist,
           discharge: discharge,
-          diagnosisCodes: diagnosisCodes
-            .split(",")
-            .map((code) => code.trim())
-            .filter((code) => code.length > 0),
+          diagnosisCodes: diagnosisCodes,
           type: "Hospital",
         });
     }
+  };
+
+  const handleChange = (event: SelectChangeEvent<typeof diagnosisCodes>) => {
+    const {
+      target: { value },
+    } = event;
+    setDiagnosisCodes(
+      // On autofill we get a stringified value.
+      typeof value === "string" ? value.split(",") : value,
+    );
   };
 
   return (
@@ -132,7 +180,7 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
         </Select>
         <TextField
           type="date"
-          label="entry date"
+          label="entry date*"
           slotProps={{
             inputLabel: {
               shrink: true,
@@ -143,14 +191,14 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
           onChange={({ target }) => setDate(target.value)}
         />
         <TextField
-          label="Description"
+          label="Description*"
           placeholder="write a description"
           fullWidth
           value={description}
           onChange={({ target }) => setDiscription(target.value)}
         />
         <TextField
-          label="Specialist"
+          label="Specialist*"
           placeholder="input a specialist"
           fullWidth
           value={specialist}
@@ -173,13 +221,36 @@ export const NewEntryForm = ({ onCancel, onSubmit, error }: Props) => {
         {type === "Hospital" && (
           <HospiatlInput discharge={discharge} setDischarge={setDischarge} />
         )}
-        <TextField
-          label="Diagnosis Code"
-          placeholder="Diagnosis Code (comma-separated)"
-          fullWidth
-          value={diagnosisCodes}
-          onChange={({ target }) => setDiagnosisCodes(target.value)}
-        />
+        <div>
+          <InputLabel id="demo-multiple-chip-label">Diagnosis Codes</InputLabel>
+          <Select
+            labelId="demo-multiple-chip-label"
+            fullWidth
+            multiple
+            value={diagnosisCodes}
+            onChange={handleChange}
+            input={
+              <OutlinedInput
+                id="select-multiple-chip"
+                label="Diagnosis Codes"
+              />
+            }
+            renderValue={(selected) => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} />
+                ))}
+              </Box>
+            )}
+            MenuProps={MenuProps}
+          >
+            {diagnosisOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.value} — {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </div>
 
         <Grid container justifyContent="space-between" sx={{ marginTop: 2 }}>
           <Grid size="auto">

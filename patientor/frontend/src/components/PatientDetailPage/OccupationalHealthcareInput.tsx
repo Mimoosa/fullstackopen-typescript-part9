@@ -17,7 +17,7 @@ export const OccupationalHealthcareInput = ({
   return (
     <>
       <TextField
-        label="Employer name"
+        label="Employer name*"
         placeholder="input a patient's name"
         fullWidth
         value={employerName}
